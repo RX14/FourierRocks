@@ -9,15 +9,17 @@ namespace FourierRocks
     {
         int _progress;
         public ProgressBar PBar = null;
+
         public void UpdateProgress(int iP)
         {
             if (iP < 0 || iP > 100) return;
             _progress = iP;
             if (PBar != null)
             {
-               PBar.Value = iP;
-               PBar.Refresh();
+                PBar.Value = iP;
+                PBar.Refresh();
             }
+
             Application.DoEvents();
         }
 

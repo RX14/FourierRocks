@@ -1,4 +1,3 @@
-
 using System;
 using System.IO;
 using System.Text;
@@ -6,9 +5,8 @@ using System.Collections.Generic;
 
 namespace FourierRocks
 {
-    public class WaveFile 
+    public class WaveFile
     {
-        
         String _path;
         int _nChannels = 0;
         int _sampleRate = 0;
@@ -17,7 +15,7 @@ namespace FourierRocks
         float _duration = 0;
         int _ChanBlock = 0;
         BinaryReader bI;
-        
+
         float[][] _data;
         UInt32 _startMarker;
         UInt32 _endMarker;
@@ -29,7 +27,7 @@ namespace FourierRocks
             get { return Int16.MaxValue; }
         }
 
-        public float[][]  GetData()
+        public float[][] GetData()
         {
             float[][] outArr = new float[_nChannels][];
 
@@ -40,6 +38,7 @@ namespace FourierRocks
                 for (UInt32 pos = _startMarker; pos < _endMarker; pos++)
                     outArr[c][pos - _startMarker] = _data[c][pos];
             }
+
             return outArr;
         }
 
@@ -65,20 +64,17 @@ namespace FourierRocks
 
         public UInt32 NSamples
         {
-            get { return _endMarker-_startMarker; }
+            get { return _endMarker - _startMarker; }
         }
 
         public long FilePos
         {
-            get
-            {
-                return bI.BaseStream.Position;
-            }
+            get { return bI.BaseStream.Position; }
         }
 
         public void SkipFirstSamples(UInt32 iNSamples)
         {
-            if ((_startMarker+ iNSamples) >= _nSamples)
+            if ((_startMarker + iNSamples) >= _nSamples)
                 throw new ArgumentOutOfRangeException();
             _startMarker += iNSamples;
         }
@@ -90,39 +86,38 @@ namespace FourierRocks
             char[] introChars = bI.ReadChars(4);
 
 
-            
-            if (new String(introChars)!="RIFF")
+            if (new String(introChars) != "RIFF")
                 throw new ArgumentException("Invalid wave file");
             UInt32 ChunkSize = bI.ReadUInt32();
             introChars = bI.ReadChars(4);
             if (new String(introChars) != "WAVE")
                 throw new ArgumentException("Invalid wave file");
             bI.BaseStream.Seek(8, SeekOrigin.Current);
-            if(bI.ReadInt16()!=1)
+            if (bI.ReadInt16() != 1)
                 throw new ArgumentException("Invalid wave file (not PCM format)");
             _nChannels = bI.ReadInt16();
             _sampleRate = bI.ReadInt32();
             bI.BaseStream.Seek(4, SeekOrigin.Current);
-            _ChanBlock = bI.ReadUInt16()/ _nChannels;
+            _ChanBlock = bI.ReadUInt16() / _nChannels;
             _bps = bI.ReadInt16();
-            if(_bps!=16)
+            if (_bps != 16)
                 throw new ArgumentException("Invalid wave file (Only 16bit PCM supported)");
-             introChars = bI.ReadChars(4);
+            introChars = bI.ReadChars(4);
             if (new String(introChars) != "data")
                 throw new ArgumentException("Invalid wave file (can't find data section)");
             UInt32 S2Size = bI.ReadUInt32();
-            
-            _nSamples = (UInt32) (S2Size * 8 / _nChannels / _bps );
+
+            _nSamples = (UInt32) (S2Size * 8 / _nChannels / _bps);
             _startMarker = 0;
             _endMarker = _nSamples;
-            _duration = (float)_nSamples / _sampleRate;
-            T = (decimal)(Math.PI * 2 / _nSamples);
-            
-            _data=new float[_nChannels][];
-            for(int i=0;i<_nChannels;i++)
+            _duration = (float) _nSamples / _sampleRate;
+            T = (decimal) (Math.PI * 2 / _nSamples);
+
+            _data = new float[_nChannels][];
+            for (int i = 0; i < _nChannels; i++)
                 _data[i] = new float[_nSamples];
-            
-            Int16 l,r;
+
+            Int16 l, r;
             for (UInt32 i = 0; i < _nSamples; i++)
             {
                 for (int c = 0; c < _nChannels; c++)
@@ -135,6 +130,7 @@ namespace FourierRocks
                 _data[0][i]=l;
                 _data[1][i]=r;*/
             }
+
             bI.Close();
         }
 
@@ -162,35 +158,38 @@ namespace FourierRocks
             oC1 = bI.ReadInt32();
         }
         */
-        
+
         void ResetPosition()
         {
             bI.BaseStream.Seek(44, SeekOrigin.Begin);
         }
 
-        public void Trim(float iMaxVal, bool iPreview,out UInt32 oStartMarker, out UInt32 oEndMarker)
+        public void Trim(float iMaxVal, bool iPreview, out UInt32 oStartMarker, out UInt32 oEndMarker)
         {
             UInt32 pos = 0;
             bool mFound = false;
             for (pos = 0; pos < _nSamples && !mFound; pos++)
             {
                 for (int c = 0; c < _nChannels; c++)
-                    if (_data[c][pos] > iMaxVal) mFound=true ;
+                    if (_data[c][pos] > iMaxVal)
+                        mFound = true;
             }
+
             oStartMarker = pos;
 
             mFound = false;
-            for (pos = _nSamples-1; pos >0 && !mFound; pos--)
+            for (pos = _nSamples - 1; pos > 0 && !mFound; pos--)
             {
                 for (int c = 0; c < _nChannels; c++)
-                    if (_data[c][pos] > iMaxVal) mFound = true;
+                    if (_data[c][pos] > iMaxVal)
+                        mFound = true;
             }
+
             oEndMarker = pos;
 
             if (iPreview) return;
             _startMarker = oStartMarker;
             _endMarker = oEndMarker;
-
         }
 
         public float GetPeakModule()
@@ -200,8 +199,10 @@ namespace FourierRocks
             for (pos = _startMarker; pos < _endMarker; pos++)
             {
                 for (int c = 0; c < _nChannels; c++)
-                    if (Math.Abs(_data[c][pos]) > maxPeak) maxPeak = Math.Abs(_data[c][pos]);
+                    if (Math.Abs(_data[c][pos]) > maxPeak)
+                        maxPeak = Math.Abs(_data[c][pos]);
             }
+
             return maxPeak;
         }
 
@@ -218,11 +219,9 @@ namespace FourierRocks
  */
             if (iRatio == 1) return iRatio;
             for (pos = _startMarker; pos < _endMarker; pos++)
-                for (int c = 0; c < _nChannels; c++)
-                    _data[c][pos] *= iRatio;
+            for (int c = 0; c < _nChannels; c++)
+                _data[c][pos] *= iRatio;
             return iRatio;
         }
-        
-
     }
 }
