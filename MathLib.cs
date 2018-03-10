@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using MathNet.Numerics.IntegralTransforms;
 
 namespace FourierRocks
 {
@@ -75,9 +76,9 @@ namespace FourierRocks
 
         public static float[] FFT(float[] iF, UInt32 iOffset)
         {
-            FFTLib.Fourier fourier = new FFTLib.Fourier();
-            float[] buf;
-            buf = fourier.DoFFT(iF, iOffset, FFT_Samples);
+            float[] buf = new float[FFT_Samples + 2];
+            Array.Copy(iF, iOffset, buf, 0, FFT_Samples);
+            Fourier.ForwardReal(buf, FFT_Samples);
             ArrayABS(ref buf);
             return buf;
         }
