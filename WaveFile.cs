@@ -102,10 +102,15 @@ namespace FourierRocks
             _bps = bI.ReadInt16();
             if (_bps != 16)
                 throw new ArgumentException("Invalid wave file (Only 16bit PCM supported)");
-            introChars = bI.ReadChars(4);
-            if (new String(introChars) != "data")
-                throw new ArgumentException("Invalid wave file (can't find data section)");
-            UInt32 S2Size = bI.ReadUInt32();
+            UInt32 S2Size;
+            while (true)
+            {
+                introChars = bI.ReadChars(4);
+                S2Size = bI.ReadUInt32();
+                if (new String(introChars) == "data")
+                    break;
+                bI.BaseStream.Seek(S2Size, SeekOrigin.Current);
+            }
 
             _nSamples = (UInt32) (S2Size * 8 / _nChannels / _bps);
             _startMarker = 0;
